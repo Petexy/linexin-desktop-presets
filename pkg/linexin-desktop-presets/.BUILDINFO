@@ -1,11 +1,11 @@
 format = 2
 pkgname = linexin-desktop-presets
 pkgbase = linexin-desktop-presets
-pkgver = 1.0.0.r-1
+pkgver = 1.0.5.r-1
 pkgarch = x86_64
-pkgbuild_sha256sum = 0a2042286727a695c9d4858b1fbed3c04a0fe43388ed364bc74da03f2b8b4871
+pkgbuild_sha256sum = 45d3b3e84eb6ec4de1cefc07088503323281c9791835bbccd373321dc589cf7c
 packager = Unknown Packager
-builddate = 1754499382
+builddate = 1754506622
 builddir = /home/petexy/GitHub/linexin-first-setup
 startdir = /home/petexy/GitHub/linexin-first-setup
 buildtool = makepkg
