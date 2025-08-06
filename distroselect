@@ -40,15 +40,22 @@ class MainWindow(Adw.ApplicationWindow):
         self.error_message = None
         self.page_names = ["Desktop 1", "Desktop 2", "Desktop 3"]
         
-        # --- Paths for scripts ---
-        self.script_base_path = "$HOME/.local/share/linexin/linexin-desktop/"
-        # Correctly defined path for the monitor script
-        self.monitor_script_path = "$HOME/.local/share/linexin/linexin-desktop/update-monitor.sh"
+        # --- MODIFIED: Use os.path.expanduser to correctly resolve home directory ---
+        # Get the user's home directory path in a way Python understands
+        home_dir = os.path.expanduser('~')
+        
+        # Define the base paths using the resolved home directory
+        self.script_base_path = os.path.join(home_dir, ".local/share/linexin/linexin-desktop/")
+        image_base_path = os.path.join(home_dir, ".local/share/linexin/desktop-mode/")
+
+        # Set the full paths for the scripts
+        self.monitor_script_path = os.path.join(self.script_base_path, "update-monitor.sh")
         self.script_paths = {
             "Desktop 1": os.path.join(self.script_base_path, "default.sh"),
             "Desktop 2": os.path.join(self.script_base_path, "windowish.sh"),
             "Desktop 3": os.path.join(self.script_base_path, "gnome.sh"),
         }
+        # --- END OF MODIFICATION ---
 
         # --- Main Layout ---
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
@@ -99,11 +106,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.btn_next.connect("clicked", self.on_next_clicked)
         content_hbox.append(self.btn_next)
         
-        # Reworked stack pages to show images
+        # --- MODIFIED: Updated image paths to use the local directory ---
         image_paths = [
-            "/usr/share/linexin/desktop-mode/desktop1.png",
-            "/usr/share/linexin/desktop-mode/desktop2.png",
-            "/usr/share/linexin/desktop-mode/desktop1.png" # Assuming this is a placeholder
+            os.path.join(image_base_path, "desktop1.png"),
+            os.path.join(image_base_path, "desktop2.png"),
+            os.path.join(image_base_path, "desktop1.png") # Assuming this is a placeholder
         ]
 
         for i, page_name in enumerate(self.page_names):
@@ -250,7 +257,6 @@ class MainWindow(Adw.ApplicationWindow):
         
         return GLib.SOURCE_REMOVE
 
-    # --- MODIFIED METHOD: Re-added the "run twice" logic ---
     def task_run_main_script(self, script_path):
         """TASK 2: Executes the main settings script twice, with a delay."""
         try:
