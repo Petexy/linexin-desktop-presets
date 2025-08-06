@@ -42,6 +42,8 @@ class MainWindow(Adw.ApplicationWindow):
         
         # --- Paths for scripts ---
         self.script_base_path = "/usr/share/linexin/linexin-desktop/"
+        # Correctly defined path for the monitor script
+        self.monitor_script_path = "/usr/share/linexin/linexin-desktop/update-monitor.sh"
         self.script_paths = {
             "Desktop 1": os.path.join(self.script_base_path, "default.sh"),
             "Desktop 2": os.path.join(self.script_base_path, "windowish.sh"),
@@ -190,22 +192,18 @@ class MainWindow(Adw.ApplicationWindow):
         if response_id != "run":
             return
 
-        if not script_path:
-            self.show_info_dialog(_("Error"), _("No script is defined for {}.").format(desktop_name))
+        if not script_path or not os.path.exists(script_path) or not os.access(script_path, os.X_OK):
+            self.show_info_dialog(_("Error"), _("Main script not found or is not executable:\n{}").format(script_path))
             return
-
-        # Check if the script exists and is executable
-        if not os.path.exists(script_path):
-            self.show_info_dialog(_("Error"), _("Script not found at:\n{}").format(script_path))
-            return
-        if not os.access(script_path, os.X_OK):
-            self.show_info_dialog(_("Error"), _("Script is not executable:\n{}").format(script_path))
+        
+        if not os.path.exists(self.monitor_script_path) or not os.access(self.monitor_script_path, os.X_OK):
+            self.show_info_dialog(_("Error"), _("Monitor script not found or is not executable:\n{}").format(self.monitor_script_path))
             return
             
         self.begin_install(script_path, desktop_name)
 
     def begin_install(self, script_path, product_name):
-        """Disables UI and starts the script execution thread."""
+        """Disables UI and starts the multi-step script execution thread."""
         self.error_message = None
         self.install_started = True
         
@@ -215,40 +213,61 @@ class MainWindow(Adw.ApplicationWindow):
         self.btn_prev.set_opacity(0.3)
         self.btn_next.set_opacity(0.3)
         self.btn_start_install.set_sensitive(False)
-        self.btn_start_install.set_label(_("Applying..."))
+        
+        # Start with the first step: updating the display
+        self.btn_start_install.set_label(_("Updating display..."))
         
         self.current_product = product_name
         
-        threading.Thread(target=self.run_shell_script, args=(script_path,), daemon=True).start()
+        # The chain starts here, passing the main script path for later use
+        threading.Thread(target=self.task_run_monitor_script, args=(script_path,), daemon=True).start()
 
-    def run_shell_script(self, script_path):
-        """Executes the specified bash script twice in a row with a delay."""
+    def task_run_monitor_script(self, main_script_path_for_next_step):
+        """TASK 1: Executes the monitor update script in a background thread."""
         try:
-            # Loop to run the script twice
-            for i in range(2):
-                # Add a 1-second delay before the second run
-                if i == 1:
-                    time.sleep(1)
+            command = ['/bin/bash', self.monitor_script_path]
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout, stderr = process.communicate()
 
-                command = ['/bin/bash', script_path]
-                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                stdout, stderr = process.communicate()
-                return_code = process.returncode
-
-                # If a run fails, stop and report the error immediately.
-                if return_code != 0:
-                    self.error_message = _("Script failed on run #{0} with code {1}.\n\nDetails: {2}").format(i + 1, return_code, stderr.strip())
-                    break  # Exit the loop on failure
-            
-            # If the loop completed without breaking, error_message is still None.
-
-        except Exception as e:
-            self.error_message = _("An unexpected error occurred while running the script: {}").format(str(e))
+            if process.returncode != 0:
+                self.error_message = _("Monitor script failed with code {0}.\n\nDetails: {1}").format(process.returncode, stderr.strip())
         
-        GLib.idle_add(self.finish_installation)
+        except Exception as e:
+            self.error_message = _("An error occurred during monitor update: {}").format(str(e))
 
-    def finish_installation(self):
-        """Called on the main thread after the script finishes to update UI."""
+        # This will call the next step on the main GTK thread
+        GLib.idle_add(self.on_monitor_script_done, main_script_path_for_next_step)
+        
+    def on_monitor_script_done(self, main_script_path):
+        """UI THREAD: Checks result of monitor script and starts main script if successful."""
+        if self.error_message:
+            # If the monitor script failed, stop here and show the error.
+            self.finalize_ui()
+        else:
+            # Monitor script succeeded. Proceed to the main style script.
+            self.btn_start_install.set_label(_("Applying settings..."))
+            threading.Thread(target=self.task_run_main_script, args=(main_script_path,), daemon=True).start()
+        
+        return GLib.SOURCE_REMOVE
+
+    def task_run_main_script(self, script_path):
+        """TASK 2: Executes the main settings script in a background thread."""
+        try:
+            command = ['/bin/bash', script_path]
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout, stderr = process.communicate()
+            
+            if process.returncode != 0:
+                self.error_message = _("Main script failed with code {0}.\n\nDetails: {1}").format(process.returncode, stderr.strip())
+        
+        except Exception as e:
+            self.error_message = _("An unexpected error occurred while running the main script: {}").format(str(e))
+        
+        # This will call the final UI update on the main GTK thread
+        GLib.idle_add(self.finalize_ui)
+
+    def finalize_ui(self):
+        """UI THREAD: Called after all operations are complete to update the UI."""
         self.install_started = False
         
         self.header_bar.set_sensitive(True)
