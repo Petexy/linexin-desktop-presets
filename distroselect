@@ -41,9 +41,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.page_names = ["Desktop 1", "Desktop 2", "Desktop 3"]
         
         # --- Paths for scripts ---
-        self.script_base_path = "/usr/share/linexin/linexin-desktop/"
+        self.script_base_path = "$HOME/.local/share/linexin/linexin-desktop/"
         # Correctly defined path for the monitor script
-        self.monitor_script_path = "/usr/share/linexin/linexin-desktop/update-monitor.sh"
+        self.monitor_script_path = "$HOME/.local/share/linexin/linexin-desktop/update-monitor.sh"
         self.script_paths = {
             "Desktop 1": os.path.join(self.script_base_path, "default.sh"),
             "Desktop 2": os.path.join(self.script_base_path, "windowish.sh"),
@@ -250,15 +250,24 @@ class MainWindow(Adw.ApplicationWindow):
         
         return GLib.SOURCE_REMOVE
 
+    # --- MODIFIED METHOD: Re-added the "run twice" logic ---
     def task_run_main_script(self, script_path):
-        """TASK 2: Executes the main settings script in a background thread."""
+        """TASK 2: Executes the main settings script twice, with a delay."""
         try:
-            command = ['/bin/bash', script_path]
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            stdout, stderr = process.communicate()
-            
-            if process.returncode != 0:
-                self.error_message = _("Main script failed with code {0}.\n\nDetails: {1}").format(process.returncode, stderr.strip())
+            # Loop to run the main script two times.
+            for i in range(2):
+                # Add a 1-second delay before the second execution.
+                if i > 0:
+                    time.sleep(1)
+
+                command = ['/bin/bash', script_path]
+                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                stdout, stderr = process.communicate()
+                
+                # If the script fails on any run, record the error and stop.
+                if process.returncode != 0:
+                    self.error_message = _("Main script failed on run #{0} with code {1}.\n\nDetails: {2}").format(i + 1, process.returncode, stderr.strip())
+                    break  # Exit the loop immediately on failure
         
         except Exception as e:
             self.error_message = _("An unexpected error occurred while running the main script: {}").format(str(e))
