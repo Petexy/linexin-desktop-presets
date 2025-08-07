@@ -3,12 +3,12 @@
 pkgname = linexin-desktop-presets
 pkgbase = linexin-desktop-presets
 xdata = pkgtype=pkg
-pkgver = 1.0.6.r-1
+pkgver = 1.0.7.r-1
 pkgdesc = Smart Installer for Affinity suite for Linux
 url = https://github.com/Petexy
-builddate = 1754594188
+builddate = 1754599548
 packager = Unknown Packager
-size = 499991
+size = 500009
 arch = x86_64
 license = GPL-3.0
 depend = python-gobject
