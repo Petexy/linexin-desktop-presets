@@ -1,0 +1,9 @@
+post_install()
+{
+   user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+   #rm -rf "$user_home/.local/share/linexin"
+   mkdir -p $user_home/.local/share/linexin/linexin-desktop
+   cp -rf /etc/skel/.local/share/linexin/linexin-desktop "$user_home/.local/share/linexin"
+   chown -R "$SUDO_USER:$SUDO_USER" "$user_home/.local/share/linexin"
+   chmod 755 "$user_home/.local/share/linexin" -R
+}

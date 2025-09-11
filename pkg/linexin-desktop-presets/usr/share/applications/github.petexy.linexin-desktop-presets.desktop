@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Change your style
+
+Exec=linexin-center -w b-desktop_presets
+
+Icon=/usr/share/icons/customize.svg
+
+Terminal=false
+Type=Application
+Categories=GTK; Installer; Blackmagic; Movie; Video; Editing; Designer;
+StartupNotify=false
+Hidden=true
