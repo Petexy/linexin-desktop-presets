@@ -27,6 +27,27 @@ except locale.Error as e:
 _ = gettext.gettext
 # --------------------------
 
+def is_plasma_session():
+    """Check if the current desktop environment is KDE Plasma"""
+    # Check common environment variables for Plasma
+    desktop_session = os.environ.get('DESKTOP_SESSION', '').lower()
+    xdg_current_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '').lower()
+    kde_session = os.environ.get('KDE_SESSION_VERSION', '')
+    
+    # Check if any indicator suggests Plasma
+    plasma_indicators = ['plasma', 'kde']
+    
+    if kde_session:  # KDE_SESSION_VERSION is set
+        return True
+    
+    if any(indicator in desktop_session for indicator in plasma_indicators):
+        return True
+    
+    if any(indicator in xdg_current_desktop for indicator in plasma_indicators):
+        return True
+    
+    return False
+
 class DesktopPresetsWidget(Gtk.Box):
     def __init__(self, hide_sidebar=False, window=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -43,7 +64,12 @@ class DesktopPresetsWidget(Gtk.Box):
         self.set_margin_start(12)
         self.set_margin_end(12)
         
-        # Initialize state variables
+        # Check if running on Plasma
+        if is_plasma_session():
+            self.setup_plasma_message()
+            return
+        
+        # Initialize state variables (only for GNOME)
         self.install_started = False
         self.error_message = None
         self.current_product = None
@@ -78,6 +104,33 @@ class DesktopPresetsWidget(Gtk.Box):
 
         # Initialize UI state
         self.update_ui_for_page_change()
+    
+    def setup_plasma_message(self):
+        """Show message when running on KDE Plasma"""
+        # Center the message vertically and horizontally
+        message_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
+        message_box.set_valign(Gtk.Align.CENTER)
+        message_box.set_halign(Gtk.Align.CENTER)
+        message_box.set_vexpand(True)
+        
+        # Add an icon
+        icon = Gtk.Image.new_from_icon_name("dialog-information-symbolic")
+        icon.set_pixel_size(64)
+        icon.add_css_class("dim-label")
+        message_box.append(icon)
+        
+        # Main message
+        message_label = Gtk.Label(label="The app is made for GNOME!")
+        message_label.add_css_class("title-1")
+        message_box.append(message_label)
+        
+        # Additional info
+        info_label = Gtk.Label(label="This desktop customization tool is designed specifically for GNOME Desktop.\nPlease use it on a GNOME session.")
+        info_label.add_css_class("dim-label")
+        info_label.set_justify(Gtk.Justification.CENTER)
+        message_box.append(info_label)
+        
+        self.append(message_box)
     
     def resize_window_deferred(self):
         """Called after widget initialization to resize window safely"""
