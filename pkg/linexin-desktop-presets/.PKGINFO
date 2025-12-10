@@ -3,12 +3,12 @@
 pkgname = linexin-desktop-presets
 pkgbase = linexin-desktop-presets
 xdata = pkgtype=pkg
-pkgver = 2.0.0.r-1
+pkgver = 3.0.0.r-1
 pkgdesc = Change your style
 url = https://github.com/Petexy
-builddate = 1757276906
+builddate = 1765328260
 packager = Unknown Packager
-size = 506232
+size = 4878237
 arch = x86_64
 license = GPL-3.0
 depend = python-gobject

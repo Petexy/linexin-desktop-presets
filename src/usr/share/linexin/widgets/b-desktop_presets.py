@@ -135,19 +135,19 @@ class DesktopPresetsWidget(Gtk.Box):
         self.install_started = False
         self.error_message = None
         self.current_product = None
-        self.page_names = ["Plasma Style 1", "Plasma Style 2", "Plasma Style 3", "Plasma Style 4", "Plasma Style 5"]
+        self.page_names = ["Kinexin", "10ish", "11ish", "2worlds", "Plasmexin"]
         
         # Setup paths for Plasma scripts
         home_dir = os.path.expanduser('~')
         self.script_base_path = os.path.join(home_dir, ".local/share/linexin/linexin-desktop/plasma/")
         
-        self.monitor_script_path = os.path.join(self.script_base_path, "update-monitor.sh")
+        self.monitor_script_path = None
         self.script_paths = {
-            "Plasma Style 1": os.path.join(self.script_base_path, "style1.sh"),
-            "Plasma Style 2": os.path.join(self.script_base_path, "style2.sh"),
-            "Plasma Style 3": os.path.join(self.script_base_path, "style3.sh"),
-            "Plasma Style 4": os.path.join(self.script_base_path, "style4.sh"),
-            "Plasma Style 5": os.path.join(self.script_base_path, "style5.sh"),
+            "Kinexin": os.path.join(self.script_base_path, "style1.sh"),
+            "10ish": os.path.join(self.script_base_path, "style2.sh"),
+            "11ish": os.path.join(self.script_base_path, "style3.sh"),
+            "2worlds": os.path.join(self.script_base_path, "style4.sh"),
+            "Plasmexin": os.path.join(self.script_base_path, "style5.sh"),
         }
 
         # Setup UI
@@ -323,16 +323,15 @@ class DesktopPresetsWidget(Gtk.Box):
         selected_desktop = self.content_stack.get_visible_child_name()
         script_to_run = self.script_paths.get(selected_desktop)
         
-        # Validate main script
+        # Validate scripts
         if not script_to_run or not os.path.exists(script_to_run) or not os.access(script_to_run, os.X_OK):
             self.show_error_dialog(_("Error"), _("Main script not found or is not executable:\n{}").format(script_to_run))
             return
         
-        # For GNOME, also check monitor script
-        if is_gnome_session():
-            if not os.path.exists(self.monitor_script_path) or not os.access(self.monitor_script_path, os.X_OK):
-                self.show_error_dialog(_("Error"), _("Monitor script not found or is not executable:\n{}").format(self.monitor_script_path))
-                return
+        # Only validate monitor script if it's needed (GNOME)
+        if self.monitor_script_path and (not os.path.exists(self.monitor_script_path) or not os.access(self.monitor_script_path, os.X_OK)):
+            self.show_error_dialog(_("Error"), _("Monitor script not found or is not executable:\n{}").format(self.monitor_script_path))
+            return
         
         # Begin installation
         self.begin_install(script_to_run, selected_desktop)
@@ -349,14 +348,14 @@ class DesktopPresetsWidget(Gtk.Box):
         self.btn_next.set_opacity(0.3)
         self.btn_apply.set_sensitive(False)
         
+        self.btn_apply.set_label(_("Updating display..."))
         self.current_product = product_name
         
-        # For Plasma, skip monitor script and go directly to main script
-        if is_plasma_session():
+        # Skip monitor script for Plasma (when monitor_script_path is None)
+        if self.monitor_script_path is None:
             self.btn_apply.set_label(_("Applying settings..."))
             threading.Thread(target=self.task_run_main_script, args=(script_path,), daemon=True).start()
         else:
-            # For GNOME, run monitor script first
             self.btn_apply.set_label(_("Updating display..."))
             threading.Thread(target=self.task_run_monitor_script, args=(script_path,), daemon=True).start()
     
@@ -477,10 +476,24 @@ class DesktopPresetsWidget(Gtk.Box):
     def on_logout_dialog_response(self, dialog, response):
         """Handle logout dialog response"""
         if response == "logout":
-            # Execute logout command based on desktop environment
-            if is_plasma_session():
-                subprocess.Popen(['qdbus', 'org.kde.Shutdown', '/Shutdown', 'logout'])
-
-            else:
-                # GNOME logout command
-                subprocess.Popen(['gnome-session-quit', '--logout', '--no-prompt'])
+            # Give a brief moment for any pending operations to complete
+            def delayed_logout():
+                time.sleep(0.5)
+                # Execute logout command based on desktop environment
+                if is_plasma_session():
+                    # KDE Plasma logout command - try multiple methods
+                    try:
+                        # Method 1: Using qdbus6 (for Plasma 6)
+                        subprocess.run(['qdbus6', 'org.kde.Shutdown', '/Shutdown', 'logout'], check=False)
+                    except FileNotFoundError:
+                        try:
+                            # Method 2: Using qdbus (for Plasma 5)
+                            subprocess.run(['qdbus', 'org.kde.ksmserver', '/KSMServer', 'logout', '0', '0', '0'], check=False)
+                        except FileNotFoundError:
+                            # Method 3: Using loginctl
+                            subprocess.run(['loginctl', 'terminate-user', os.environ.get('USER', '')], check=False)
+                else:
+                    # GNOME logout command
+                    subprocess.Popen(['gnome-session-quit', '--logout', '--no-prompt'])
+            
+            threading.Thread(target=delayed_logout, daemon=True).start()

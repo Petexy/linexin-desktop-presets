@@ -7,3 +7,9 @@ post_install()
    chown -R "$SUDO_USER:$SUDO_USER" "$user_home/.local/share/linexin"
    chmod 755 "$user_home/.local/share/linexin" -R
 }
+
+post_upgrade()
+{
+    post_install
+}
+

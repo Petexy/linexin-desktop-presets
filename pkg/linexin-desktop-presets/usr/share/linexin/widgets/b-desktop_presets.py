@@ -27,6 +27,47 @@ except locale.Error as e:
 _ = gettext.gettext
 # --------------------------
 
+def is_plasma_session():
+    """Check if the current desktop environment is KDE Plasma"""
+    # Check common environment variables for Plasma
+    desktop_session = os.environ.get('DESKTOP_SESSION', '').lower()
+    xdg_current_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '').lower()
+    kde_session = os.environ.get('KDE_SESSION_VERSION', '')
+    
+    # Check if any indicator suggests Plasma
+    plasma_indicators = ['plasma', 'kde']
+    
+    if kde_session:  # KDE_SESSION_VERSION is set
+        return True
+    
+    if any(indicator in desktop_session for indicator in plasma_indicators):
+        return True
+    
+    if any(indicator in xdg_current_desktop for indicator in plasma_indicators):
+        return True
+    
+    return False
+
+def is_gnome_session():
+    """Check if the current desktop environment is GNOME"""
+    desktop_session = os.environ.get('DESKTOP_SESSION', '').lower()
+    xdg_current_desktop = os.environ.get('XDG_CURRENT_DESKTOP', '').lower()
+    gdm_session = os.environ.get('GDMSESSION', '').lower()
+    
+    # Check if any indicator suggests GNOME
+    gnome_indicators = ['gnome', 'ubuntu', 'pop']  # ubuntu and pop use GNOME
+    
+    if any(indicator in desktop_session for indicator in gnome_indicators):
+        return True
+    
+    if any(indicator in xdg_current_desktop for indicator in gnome_indicators):
+        return True
+    
+    if any(indicator in gdm_session for indicator in gnome_indicators):
+        return True
+    
+    return False
+
 class DesktopPresetsWidget(Gtk.Box):
     def __init__(self, hide_sidebar=False, window=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -43,6 +84,25 @@ class DesktopPresetsWidget(Gtk.Box):
         self.set_margin_start(12)
         self.set_margin_end(12)
         
+        # Store window and sidebar settings
+        self.window = window
+        self.hide_sidebar = hide_sidebar
+        
+        # Check desktop environment and setup accordingly
+        if is_plasma_session():
+            self.setup_plasma_interface()
+        elif is_gnome_session():
+            self.setup_gnome_interface()
+        else:
+            # Fallback to GNOME interface for unknown DEs
+            self.setup_gnome_interface()
+        
+        # Handle window resizing for single widget mode
+        if self.hide_sidebar:
+            GLib.idle_add(self.resize_window_deferred)
+    
+    def setup_gnome_interface(self):
+        """Setup the full GNOME desktop presets interface"""
         # Initialize state variables
         self.install_started = False
         self.error_message = None
@@ -52,7 +112,6 @@ class DesktopPresetsWidget(Gtk.Box):
         # Setup paths
         home_dir = os.path.expanduser('~')
         self.script_base_path = os.path.join(home_dir, ".local/share/linexin/linexin-desktop/")
-        image_base_path = os.path.join(home_dir, ".local/share/linexin/linexin-desktop/")
         
         self.monitor_script_path = os.path.join(self.script_base_path, "update-monitor.sh")
         self.script_paths = {
@@ -66,15 +125,35 @@ class DesktopPresetsWidget(Gtk.Box):
         self.setup_title()
         self.setup_carousel()
         self.setup_controls()
-        
-        self.window = window
-        self.hide_sidebar = hide_sidebar
 
-        if not self.hide_sidebar:
-            pass
-        else:
-            # Single widget mode
-            GLib.idle_add(self.resize_window_deferred)
+        # Initialize UI state
+        self.update_ui_for_page_change()
+    
+    def setup_plasma_interface(self):
+        """Setup the Plasma desktop presets interface"""
+        # Initialize state variables for Plasma
+        self.install_started = False
+        self.error_message = None
+        self.current_product = None
+        self.page_names = ["Kinexin", "10ish", "11ish", "2worlds", "Plasmexin"]
+        
+        # Setup paths for Plasma scripts
+        home_dir = os.path.expanduser('~')
+        self.script_base_path = os.path.join(home_dir, ".local/share/linexin/linexin-desktop/plasma/")
+        
+        self.monitor_script_path = None
+        self.script_paths = {
+            "Kinexin": os.path.join(self.script_base_path, "style1.sh"),
+            "10ish": os.path.join(self.script_base_path, "style2.sh"),
+            "11ish": os.path.join(self.script_base_path, "style3.sh"),
+            "2worlds": os.path.join(self.script_base_path, "style4.sh"),
+            "Plasmexin": os.path.join(self.script_base_path, "style5.sh"),
+        }
+
+        # Setup UI
+        self.setup_title()
+        self.setup_carousel()
+        self.setup_controls()
 
         # Initialize UI state
         self.update_ui_for_page_change()
@@ -123,41 +202,66 @@ class DesktopPresetsWidget(Gtk.Box):
         nav_box.append(self.btn_next)
         
         # Setup pages with images
-        image_paths = [
-            os.path.join(self.script_base_path, "default.png"),
-            os.path.join(self.script_base_path, "windowish.png"),
-            os.path.join(self.script_base_path, "ubunexin.png"),
-            os.path.join(self.script_base_path, "gnome.png")
-        ]
+        image_paths = []
+        if is_plasma_session():
+            # Plasma image paths
+            image_paths = [
+                os.path.join(self.script_base_path, "style1.png"),
+                os.path.join(self.script_base_path, "style2.png"),
+                os.path.join(self.script_base_path, "style3.png"),
+                os.path.join(self.script_base_path, "style4.png"),
+                os.path.join(self.script_base_path, "style5.png")
+            ]
+        else:
+            # GNOME image paths
+            image_paths = [
+                os.path.join(self.script_base_path, "default.png"),
+                os.path.join(self.script_base_path, "windowish.png"),
+                os.path.join(self.script_base_path, "ubunexin.png"),
+                os.path.join(self.script_base_path, "gnome.png")
+            ]
         
         for i, page_name in enumerate(self.page_names):
             image_path = image_paths[i]
+            
+            # Debug output
+            print(f"Looking for image: {image_path}")
+            print(f"Image exists: {os.path.exists(image_path)}")
             
             # Page container
             page_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
             page_container.set_valign(Gtk.Align.CENTER)
             page_container.set_halign(Gtk.Align.CENTER)
             
-            # Preview image
-            picture = Gtk.Picture()
-            picture.set_keep_aspect_ratio(True)
-            picture.set_can_shrink(True)
-            picture.set_content_fit(Gtk.ContentFit.SCALE_DOWN)
-            
-            # Set a reasonable size for widget display
-            picture.set_size_request(300, 200)
-            
+            # Preview image or placeholder
             if os.path.exists(image_path):
+                print(f"Loading image: {image_path}")
+                picture = Gtk.Picture()
+                picture.set_keep_aspect_ratio(True)
+                picture.set_can_shrink(True)
+                picture.set_content_fit(Gtk.ContentFit.SCALE_DOWN)
+                picture.set_size_request(300, 200)
                 picture.set_filename(image_path)
+                page_container.append(picture)
             else:
-                # Fallback image
-                picture.set_from_icon_name("preferences-desktop-theme")
+                print(f"Image not found, showing placeholder for: {image_path}")
+                # Fallback: use a simple placeholder box
+                fallback = Gtk.Box()
+                fallback.set_size_request(300, 200)
+                fallback.add_css_class("card")
+                
+                # Add a label to show it's a placeholder
+                placeholder_label = Gtk.Label(label="Preview not available")
+                placeholder_label.add_css_class("dim-label")
+                fallback.append(placeholder_label)
+                fallback.set_halign(Gtk.Align.CENTER)
+                fallback.set_valign(Gtk.Align.CENTER)
+                
+                page_container.append(fallback)
             
             # Style name label
             label = Gtk.Label(label=page_name)
             label.add_css_class("title-3")
-            
-            page_container.append(picture)
             page_container.append(label)
             
             self.content_stack.add_named(page_container, page_name)
@@ -185,6 +289,8 @@ class DesktopPresetsWidget(Gtk.Box):
     def on_prev_clicked(self, button):
         """Handle previous button click"""
         current_name = self.content_stack.get_visible_child_name()
+        if not current_name or current_name not in self.page_names:
+            return
         current_index = self.page_names.index(current_name)
         if current_index > 0:
             self.content_stack.set_visible_child_name(self.page_names[current_index - 1])
@@ -192,6 +298,8 @@ class DesktopPresetsWidget(Gtk.Box):
     def on_next_clicked(self, button):
         """Handle next button click"""
         current_name = self.content_stack.get_visible_child_name()
+        if not current_name or current_name not in self.page_names:
+            return
         current_index = self.page_names.index(current_name)
         if current_index < len(self.page_names) - 1:
             self.content_stack.set_visible_child_name(self.page_names[current_index + 1])
@@ -220,7 +328,8 @@ class DesktopPresetsWidget(Gtk.Box):
             self.show_error_dialog(_("Error"), _("Main script not found or is not executable:\n{}").format(script_to_run))
             return
         
-        if not os.path.exists(self.monitor_script_path) or not os.access(self.monitor_script_path, os.X_OK):
+        # Only validate monitor script if it's needed (GNOME)
+        if self.monitor_script_path and (not os.path.exists(self.monitor_script_path) or not os.access(self.monitor_script_path, os.X_OK)):
             self.show_error_dialog(_("Error"), _("Monitor script not found or is not executable:\n{}").format(self.monitor_script_path))
             return
         
@@ -242,7 +351,13 @@ class DesktopPresetsWidget(Gtk.Box):
         self.btn_apply.set_label(_("Updating display..."))
         self.current_product = product_name
         
-        threading.Thread(target=self.task_run_monitor_script, args=(script_path,), daemon=True).start()
+        # Skip monitor script for Plasma (when monitor_script_path is None)
+        if self.monitor_script_path is None:
+            self.btn_apply.set_label(_("Applying settings..."))
+            threading.Thread(target=self.task_run_main_script, args=(script_path,), daemon=True).start()
+        else:
+            self.btn_apply.set_label(_("Updating display..."))
+            threading.Thread(target=self.task_run_monitor_script, args=(script_path,), daemon=True).start()
     
     def task_run_monitor_script(self, main_script_path_for_next_step):
         """Execute the monitor update script"""
@@ -361,5 +476,24 @@ class DesktopPresetsWidget(Gtk.Box):
     def on_logout_dialog_response(self, dialog, response):
         """Handle logout dialog response"""
         if response == "logout":
-            # Execute logout command
-            subprocess.Popen(['gnome-session-quit', '--logout', '--no-prompt'])
+            # Give a brief moment for any pending operations to complete
+            def delayed_logout():
+                time.sleep(0.5)
+                # Execute logout command based on desktop environment
+                if is_plasma_session():
+                    # KDE Plasma logout command - try multiple methods
+                    try:
+                        # Method 1: Using qdbus6 (for Plasma 6)
+                        subprocess.run(['qdbus6', 'org.kde.Shutdown', '/Shutdown', 'logout'], check=False)
+                    except FileNotFoundError:
+                        try:
+                            # Method 2: Using qdbus (for Plasma 5)
+                            subprocess.run(['qdbus', 'org.kde.ksmserver', '/KSMServer', 'logout', '0', '0', '0'], check=False)
+                        except FileNotFoundError:
+                            # Method 3: Using loginctl
+                            subprocess.run(['loginctl', 'terminate-user', os.environ.get('USER', '')], check=False)
+                else:
+                    # GNOME logout command
+                    subprocess.Popen(['gnome-session-quit', '--logout', '--no-prompt'])
+            
+            threading.Thread(target=delayed_logout, daemon=True).start()
