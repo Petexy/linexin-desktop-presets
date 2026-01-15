@@ -6,6 +6,7 @@ RightButton;NoModifier=org.kde.contextmenu
 
 [Containments][131]
 ItemGeometries-1280x800=
+ItemGeometries-1360x768=
 ItemGeometriesHorizontal=
 activityId=d0daeb13-ce13-4d9c-b09d-f08b75b13b49
 formfactor=0
@@ -26,6 +27,35 @@ positions={"1280x800":[]}
 Image=/usr/share/wallpapers/Kinexin/Content/images/Kinexin.svg
 SlidePaths=/usr/share/wallpapers/
 
+[Containments][132]
+activityId=
+formfactor=2
+immutability=1
+lastScreen=0
+location=3
+plugin=org.kde.panel
+wallpaperplugin=org.kde.image
+
+[Containments][132][Applets][133]
+immutability=1
+plugin=org.kde.plasma.appmenu
+
+[Containments][132][Applets][153]
+immutability=1
+plugin=org.kde.windowtitle
+
+[Containments][132][Applets][153][Configuration][Appearance]
+midSpace=10
+txt=%a\s
+visible=false
+
+[Containments][132][Applets][153][Configuration][ConfigDialog]
+DialogHeight=540
+DialogWidth=720
+
+[Containments][132][General]
+AppletOrder=153;133
+
 [Containments][73]
 activityId=
 formfactor=2
@@ -35,23 +65,25 @@ location=4
 plugin=org.kde.panel
 wallpaperplugin=org.kde.image
 
-[Containments][73][Applets][132]
+[Containments][73][Applets][154]
 immutability=1
 plugin=org.kde.plasma.kickoff
 
-[Containments][73][Applets][132][Configuration]
+[Containments][73][Applets][154][Configuration]
 PreloadWeight=100
 popupHeight=506
 popupWidth=643
 
-[Containments][73][Applets][132][Configuration][ConfigDialog]
+[Containments][73][Applets][154][Configuration][ConfigDialog]
 DialogHeight=540
 DialogWidth=720
 
-[Containments][73][Applets][132][Configuration][General]
+[Containments][73][Applets][154][Configuration][General]
+customButtonImage=/usr/share/logo/logosmall.png
 favoritesPortedToKAstats=true
 icon=/usr/share/logo/logosmall.png
 systemFavorites=suspend\\,hibernate\\,reboot\\,shutdown
+useCustomButtonImage=true
 
 [Containments][73][Applets][74]
 immutability=1
@@ -61,7 +93,7 @@ plugin=org.kde.plasma.icontasks
 launchers=applications:app.zen_browser.zen.desktop,preferred://filemanager,applications:org.kde.discover.desktop,applications:github.petexy.linexincenter.desktop,applications:steam.desktop
 
 [Containments][73][General]
-AppletOrder=132;74
+AppletOrder=154;74
 
 [Containments][76]
 activityId=
@@ -188,29 +220,8 @@ knownItems=org.kde.plasma.battery,org.kde.plasma.clipboard,org.kde.plasma.notifi
 immutability=1
 plugin=org.kde.plasma.showdesktop
 
-[Containments][76][Applets][122]
-immutability=1
-plugin=org.kde.plasma.panelspacer
-
-[Containments][76][Applets][130]
-immutability=1
-plugin=org.kde.windowtitle
-
-[Containments][76][Applets][130][Configuration][Appearance]
-midSpace=10
-txt=%a\s
-visible=false
-
-[Containments][76][Applets][130][Configuration][ConfigDialog]
-DialogHeight=540
-DialogWidth=720
-
-[Containments][76][Applets][77]
-immutability=1
-plugin=org.kde.plasma.appmenu
-
 [Containments][76][General]
-AppletOrder=130;77;122;105;104;121
+AppletOrder=105;104;121
 
 [ScreenMapping]
 itemsOnDisabledScreens=

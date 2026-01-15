@@ -33,6 +33,7 @@ MoveResize=100
 [Plugins]
 blurEnabled=false
 forceblurEnabled=true
+glassEnabled=true
 macsimize6Enabled=true
 
 [Round-Corners]
@@ -56,9 +57,14 @@ padding=4
 [Tiling][a2d46a8e-93c9-43d7-936c-60a6aa97fc4b][8c0d0772-0a64-4e92-86ea-06aa9610747c]
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][a2d46a8e-93c9-43d7-936c-60a6aa97fc4b][b2a45dfe-d2e0-491d-9547-33e7dfbc02e6]
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Xwayland]
 Scale=1
 
 [org.kde.kdecoration2]
 ButtonsOnLeft=XIA
 ButtonsOnRight=HSM
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__Layan

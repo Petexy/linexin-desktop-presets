@@ -32,8 +32,9 @@ MoveResize=100
 
 [Plugins]
 blurEnabled=false
-forceblurEnabled=true
+glassEnabled=true
 macsimize6Enabled=true
+shapecornersEnabled=true
 
 [Round-Corners]
 ActiveShadowUsePalette=true
