@@ -1,6 +1,5 @@
 translations = {
     "Desktop Presets": "Preajustes de Escritorio",
-
     "Applying settings...": "Aplicando configuración...",
     "Restart Required": "Reinicio Requerido",
     "Pure GNOME": "GNOME Puro",
@@ -12,4 +11,5 @@ translations = {
     "To complete the change to Ubunexin, you need to log out and log back in again.": "Para completar el cambio a Ubunexin, necesitas cerrar sesión e iniciar sesión nuevamente.",
     "To complete the change to Linexin, you need to log out and log back in again.": "Para completar el cambio a Linexin, necesitas cerrar sesión e iniciar sesión nuevamente.",
     "To complete the change to Pure GNOME, you need to log out and log back in again.": "Para completar el cambio a GNOME Puro, necesitas cerrar sesión e iniciar sesión nuevamente.",
+    "To complete the change to {}, you need to log out and log back in again.": "To complete the change to {}, you need to log out and log back in again.",
 }

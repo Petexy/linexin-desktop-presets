@@ -1,6 +1,5 @@
 translations = {
     "Desktop Presets": "Предустановки рабочего стола",
-
     "Applying settings...": "Применение настроек...",
     "Restart Required": "Требуется перезагрузка",
     "Pure GNOME": "Чистый GNOME",
@@ -12,4 +11,5 @@ translations = {
     "To complete the change to Ubunexin, you need to log out and log back in again.": "Чтобы завершить переход на Ubunexin, нужно выйти из системы и войти снова.",
     "To complete the change to Linexin, you need to log out and log back in again.": "Чтобы завершить переход на Linexin, нужно выйти из системы и войти снова.",
     "To complete the change to Pure GNOME, you need to log out and log back in again.": "Чтобы завершить переход на Чистый GNOME, нужно выйти из системы и войти снова.",
+    "To complete the change to {}, you need to log out and log back in again.": "To complete the change to {}, you need to log out and log back in again.",
 }
