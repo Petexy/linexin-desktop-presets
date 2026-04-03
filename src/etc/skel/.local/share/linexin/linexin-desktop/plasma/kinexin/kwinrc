@@ -63,3 +63,4 @@ Scale=1
 [org.kde.kdecoration2]
 ButtonsOnLeft=XIA
 ButtonsOnRight=HSM
+library=kinexin-deco-kwin
