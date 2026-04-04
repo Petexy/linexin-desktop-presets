@@ -108,7 +108,7 @@ class DesktopPresetsWidget(Gtk.Box):
         if self.window:
             try:
                 self.window.set_default_size(1200, 850)
-                print("Window default size set to 1400x800")
+                print("Window default size set to 1200x850")
             except Exception as e:
                 print(f"Failed to resize window: {e}")
         return False
@@ -173,7 +173,7 @@ class DesktopPresetsWidget(Gtk.Box):
                 fallback = Gtk.Box()
                 fallback.set_size_request(300, 200)
                 fallback.add_css_class("card")
-                placeholder_label = Gtk.Label(label="Preview not available")
+                placeholder_label = Gtk.Label(label=_("Preview not available"))
                 placeholder_label.add_css_class("dim-label")
                 fallback.append(placeholder_label)
                 fallback.set_halign(Gtk.Align.CENTER)
@@ -316,24 +316,26 @@ class DesktopPresetsWidget(Gtk.Box):
         dialog.add_response("ok", _("OK"))
         dialog.set_default_response("ok")
         dialog.set_close_response("ok")
+        translate_dialog(dialog)
         dialog.present()
     def show_logout_dialog(self):
         """Show logout prompt dialog"""
         parent_window = self.get_root()
-        body_template = "To complete the change to {}, you need to log out and log back in again."
+        body_template = _("To complete the change to {}, you need to log out and log back in again.")
         body = body_template.format(self.current_product)
         dialog = Adw.MessageDialog(
-            heading="Restart Required",
+            heading=_("Restart Required"),
             body=body,
             transient_for=parent_window,
             modal=True
         )
-        dialog.add_response("later", "Later")
-        dialog.add_response("logout", "Log Out Now")
+        dialog.add_response("later", _("Later"))
+        dialog.add_response("logout", _("Log Out Now"))
         dialog.set_response_appearance("logout", Adw.ResponseAppearance.SUGGESTED)
         dialog.set_default_response("later")
         dialog.set_close_response("later")
         dialog.connect("response", self.on_logout_dialog_response)
+        translate_dialog(dialog)
         dialog.present()
     def on_logout_dialog_response(self, dialog, response):
         """Handle logout dialog response"""
