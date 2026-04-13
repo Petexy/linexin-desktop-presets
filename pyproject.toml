@@ -1,0 +1,20 @@
+[project]
+name = "linexin-desktop-presets"
+version = "3.3.0"
+description = "Change your style"
+license = "GPL-3.0-only"
+requires-python = ">=3.10"
+authors = [
+    {name = "Petexy"},
+]
+dependencies = [
+    "PyGObject",
+]
+
+[project.urls]
+Homepage = "https://github.com/Petexy/linexin-desktop-presets"
+Repository = "https://github.com/Petexy/linexin-desktop-presets"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

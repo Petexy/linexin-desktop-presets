@@ -2,28 +2,28 @@
 
 pkgname=linexin-desktop-presets
 pkgver=3.3.0.r
-pkgrel=1
-_currentdate=$(date +"%Y-%m-%d%H-%M-%S")
+pkgrel=2
 pkgdesc='Change your style'
 url='https://github.com/Petexy'
-arch=(x86_64)
+arch=('x86_64')
 license=('GPL-3.0')
 depends=(
-  python-gobject
-  gtk4
-  libadwaita
-  python
-  linexin-center
-)
-makedepends=(
+  'python-gobject'
+  'gtk4'
+  'libadwaita'
+  'python'
+  'linexin-center'
 )
 install="${pkgname}.install"
 
 package() {
-   mkdir -p ${pkgdir}/usr/share/linexin/widgets
-   mkdir -p ${pkgdir}/usr/share/icons
-   mkdir -p ${pkgdir}/etc/skel/.local/share/linexin/linexin-desktop
-   mkdir -p ${pkgdir}/usr/share/applications
-   cp -rf ${srcdir}/usr/ ${pkgdir}/
-   cp -rf ${srcdir}/etc/skel/.local/share/linexin/linexin-desktop ${pkgdir}/etc/skel/.local/share/linexin/
+    cd "${srcdir}"
+
+    find usr etc -type f 2>/dev/null | while IFS= read -r _file; do
+        if [[ "${_file}" == usr/bin/* ]]; then
+            install -Dm755 "${_file}" "${pkgdir}/${_file}"
+        else
+            install -Dm644 "${_file}" "${pkgdir}/${_file}"
+        fi
+    done
 }
