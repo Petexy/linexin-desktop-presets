@@ -1,7 +1,7 @@
 # Maintainer: Petexy <https://github.com/Petexy>
 
 pkgname=linexin-desktop-presets
-pkgver=3.3.0.r
+pkgver=3.3.1.r
 pkgrel=3
 pkgdesc='Change your style'
 url='https://github.com/Petexy'
@@ -23,7 +23,7 @@ package() {
         if [[ "${_file}" == usr/bin/* || "${_file}" == *.sh ]]; then
             install -Dm755 "${_file}" "${pkgdir}/${_file}"
         else
-            install -Dm644 "${_file}" "${pkgdir}/${_file}"
+            install -Dm755 "${_file}" "${pkgdir}/${_file}"
         fi
     done
 }
