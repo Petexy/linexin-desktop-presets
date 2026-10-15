@@ -19,6 +19,11 @@ arch=('x86_64')
 license=('GPL-3.0-or-later')
 depends=('linexin-center>=4.0.0' 'gtk4' 'libadwaita' 'python' 'python-gobject')
 makedepends=('cargo')
+# No makepkg LTO: it compiles the C code some Rust crates build (ring, the
+# TLS library's crypto) into GCC bytecode the Rust linker cannot use, leaving
+# those symbols undefined in the built library, which then fails to load.
+# Rust's own optimisation is set in Cargo.toml.
+options=('!lto')
 install=linexin-desktop-presets.install
 
 _root="$(realpath "$startdir")"
