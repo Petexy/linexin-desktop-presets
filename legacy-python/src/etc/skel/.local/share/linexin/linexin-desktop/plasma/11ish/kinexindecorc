@@ -1,0 +1,11 @@
+[General]
+BarColor=49,49,58
+BarOpacity=80
+BarRounding=12
+BarSide=2
+BarWidth=36
+ButtonPadding=10
+ButtonSize=16
+TitleColor=166,166,174,179
+TitleFontSize=11
+TitleRotation=0
